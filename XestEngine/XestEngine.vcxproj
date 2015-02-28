@@ -67,13 +67,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BaseApp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="XestApp.h" />
     <ClInclude Include="XFramework.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BaseApp.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="XestApp.cpp" />
     <ClCompile Include="XFramework.cpp" />
   </ItemGroup>
   <ItemGroup>

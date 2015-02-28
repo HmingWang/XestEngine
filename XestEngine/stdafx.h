@@ -17,3 +17,9 @@
 
 
 // TODO:  在此处引用程序需要的其他头文件
+//C++ 头文件
+#include <iostream>
+#include <string>
+
+//设定String类型
+#define String std::string
