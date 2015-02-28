@@ -1,8 +1,8 @@
 #pragma once
-#include "XFramework.h"
+#include "DXBase.h"
 
 class XestApp :
-	public XFramework
+	public DXBase
 {
 public:
 	XestApp();

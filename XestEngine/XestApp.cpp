@@ -1,9 +1,10 @@
 #include "XestApp.h"
+#include "XUtil.h"
 
 
 XestApp::XestApp()
 {
-	g_theApp = this;
+	sUtil.Debug("App Constractor");
 }
 
 

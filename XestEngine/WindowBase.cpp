@@ -1,4 +1,4 @@
-#include "XFramework.h"
+#include "WindowBase.h"
 
 //Windows窗口过程
 // 定义应用程序的入口点。
@@ -15,14 +15,20 @@ LRESULT CALLBACK WinAppProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 
 
-XFramework::XFramework(HINSTANCE hInstance, int nCmdShow, String title, int width, int height) :
+WindowBase::WindowBase(HINSTANCE hInstance, int nCmdShow, String title, int width, int height) :
 m_hInstance(hInstance),
 m_nCmdShow(nCmdShow),
 m_sTitle(title),
-m_sWindowClass("XFW")
+m_sWindowClass("XFW"),
+m_clientWidth(width),
+m_clientHeight(height),
+m_isMinimized(false),
+m_isMaximized(false),
+m_isPaused(false),
+m_isResizing(false)
 {
 	//初始化全局对象（指针）
-	//g_theApp = this;
+	g_theApp = this;
 
 	//在Debug模式下，我们打开控制台，显示一些有用的信息
 #if defined(DEBUG) || defined(_DEBUG)
@@ -34,28 +40,26 @@ m_sWindowClass("XFW")
 #endif
 }
 
-int XFramework::Run()
+int WindowBase::Run()
 {
-	RegisterClass();
-
 	// 执行应用程序初始化: 
-	if (!InitInstance())
-	{
-		return FALSE;
-	}
-
-	m_hAccelTable = LoadAccelerators(m_hInstance, MAKEINTRESOURCE(IDC_XEST_ENGINE));
-
+	if (!InitInstance()) return FALSE;
+	if (!g_theApp->Init()) return FALSE;  //子类初始化
 	// 主消息循环: 
-	while (GetMessage(&m_msg, NULL, 0, 0))
+	while (WM_QUIT != m_msg.message)
 	{
-		if (!TranslateAccelerator(m_msg.hwnd, m_hAccelTable, &m_msg))
+		if (PeekMessage(&m_msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&m_msg);
 			DispatchMessage(&m_msg);
 		}
+		else
+		{
+			g_theApp->Render();    //子类渲染
+		}
 	}
 
+	g_theApp->Exit();             //子类退出
 	return (int)m_msg.wParam;
 }
 
@@ -64,7 +68,7 @@ int XFramework::Run()
 //
 //  目的:  注册窗口类。
 //
-ATOM XFramework::RegisterClass()
+ATOM WindowBase::RegisterClass()
 {
 	WNDCLASSEX wcex;
 
@@ -95,24 +99,24 @@ ATOM XFramework::RegisterClass()
 //        在此函数中，我们在全局变量中保存实例句柄并
 //        创建和显示主程序窗口。
 //
-BOOL XFramework::InitInstance()
+bool WindowBase::InitInstance()
 {
-	//HWND hWnd;
-
-	//m_hInstance = hInstance; // 将实例句柄存储在全局变量中
+	RegisterClass();
 
 	m_hWnd = CreateWindow(m_sWindowClass.c_str(), m_sTitle.c_str(), WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, m_hInstance, NULL);
 
 	if (!m_hWnd)
 	{
-		return FALSE;
+		return false;
 	}
 
 	ShowWindow(m_hWnd, m_nCmdShow);
 	UpdateWindow(m_hWnd);
 
-	return TRUE;
+	m_hAccelTable = LoadAccelerators(m_hInstance, MAKEINTRESOURCE(IDC_XEST_ENGINE));
+
+	return true;
 }
 
 //
@@ -125,7 +129,7 @@ BOOL XFramework::InitInstance()
 //  WM_DESTROY	- 发送退出消息并返回
 //
 //
-LRESULT CALLBACK XFramework::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WindowBase::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
@@ -140,7 +144,7 @@ LRESULT CALLBACK XFramework::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		switch (wmId)
 		{
 		case IDM_ABOUT:
-			//DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, XFramework::About);
+			//DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, WindowBase::About);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -164,7 +168,7 @@ LRESULT CALLBACK XFramework::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 }
 
 // “关于”框的消息处理程序。
-INT_PTR CALLBACK XFramework::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK WindowBase::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -183,12 +187,35 @@ INT_PTR CALLBACK XFramework::About(HWND hDlg, UINT message, WPARAM wParam, LPARA
 	return (INT_PTR)FALSE;
 }
 
-void XFramework::SetInstance(HINSTANCE hInstance)
+void WindowBase::SetInstance(HINSTANCE hInstance)
 {
 	m_hInstance = hInstance;
 }
 
-XFramework::~XFramework()
+WindowBase::~WindowBase()
 {
+	//override
+}
+
+bool WindowBase::Init()
+{
+	//override
+
+	return true;
+}
+
+void WindowBase::Exit()
+{
+	//override
+}
+
+//--------------------------------------------------------------------------------------
+// Render the frame
+//--------------------------------------------------------------------------------------
+void WindowBase::Render()
+{
+	//override
 
 }
+
+

@@ -13,12 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{4f32944f-7b83-4a2a-b0b3-1eb128015656}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="XFramework.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -27,16 +27,31 @@
     <ClInclude Include="XestApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WindowBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DXBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="XFramework.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="XestApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowBase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DXBase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XUtil.cpp">
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
