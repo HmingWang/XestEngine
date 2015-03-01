@@ -4,7 +4,7 @@
 
 XestApp::XestApp()
 {
-	sUtil.Debug("App Constractor");
+	Trace("App Constractor");
 }
 
 

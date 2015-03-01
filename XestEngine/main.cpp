@@ -14,4 +14,4 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	g_theApp = &xestApp;
 	g_theApp->SetInstance(hInstance);
 	return g_theApp->Run();
-}
+} 

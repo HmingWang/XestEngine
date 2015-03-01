@@ -3,13 +3,19 @@
 //π§æﬂ¿‡
 //==========================
 #include "stdafx.h"
-class XUtil
-{
-private:
-	XUtil() = default;
-public:
-	static XUtil& GetInstance();
-	void Debug(String);
-};
+#include "WindowBase.h"
 
-#define sUtil XUtil::GetInstance()
+
+namespace XUtil
+{
+
+	void Trace(String s)
+	{
+	#if defined(DEBUG) || defined(_DEBUG)
+		cout << s << endl;
+	#endif
+	}
+
+}
+
+using namespace XUtil;

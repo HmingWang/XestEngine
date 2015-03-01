@@ -22,5 +22,9 @@ public:
 	virtual void Exit()   override;       //程序退出
 	void CleanupDevice();
 	void CalculateFPS();  //计算帧数
+	
+	// IDeviceNotify  设备丢失处理
+	virtual void OnDeviceLost();
+	virtual void OnDeviceRestored();
 };
 
