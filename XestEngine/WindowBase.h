@@ -37,6 +37,8 @@ public:
 
 	HINSTANCE	GetInstance()	const				{ return m_hInstance; }
 	HWND		GetWindow()		const				{ return m_hWnd; }
+	void		SetWindowTitle(String title)	{ SetWindowText(m_hWnd, title.c_str()); }
+	String		GetWindowTitle()	            { return m_sTitle; }
 
 	LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);  //消息处理函数
 	INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);

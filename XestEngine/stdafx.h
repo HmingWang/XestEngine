@@ -22,15 +22,17 @@
 //C++ 头文件
 #include <iostream>
 #include <string>
+#include <sstream>
 
 //DirectX 头文件
 #include <d3d11.h>
-//#include <d3dx11.h>
+#include <d3dx11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
+#include <xnamath.h>
 //DirectX 库文件
 #pragma comment( lib, "d3d11.lib" )
-//#pragma comment( lib, "d3dx11d.lib" )
+#pragma comment( lib, "d3dx11d.lib" )
 #pragma comment( lib, "D3DCompiler.lib" )
 //#pragma comment( lib, "dxerr.lib" )
 #pragma comment( lib, "dxgi.lib" )
@@ -67,3 +69,9 @@ using std::endl;
          }
 #endif
 #define SafeRelease SAFE_RELEASE
+
+
+struct SimpleVertex
+{
+	XMFLOAT3 Pos;
+};

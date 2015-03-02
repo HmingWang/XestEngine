@@ -33,6 +33,9 @@
     <ClInclude Include="DXBase.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="XUtil.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -50,6 +53,12 @@
     <ClCompile Include="DXBase.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -60,5 +69,13 @@
     <Image Include="icon.ico">
       <Filter>资源文件</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>资源文件</Filter>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>资源文件</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
