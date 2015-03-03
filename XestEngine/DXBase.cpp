@@ -1,5 +1,6 @@
 #include "DXBase.h"
 #include "XUtil.h"
+#include "Geometry.h"
 
 
 DXBase::DXBase()
@@ -52,7 +53,7 @@ HRESULT DXBase::InitDevice()
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.OutputWindow = this->GetWindow();  //输出窗口句柄
-	sd.SampleDesc.Count = 1;   //多重采样抗锯齿等级
+	sd.SampleDesc.Count = 4;   //多重采样抗锯齿等级
 	sd.SampleDesc.Quality = 0; //多重采样抗锯齿品质
 	sd.Windowed = TRUE;        //窗口化
 
@@ -91,35 +92,71 @@ HRESULT DXBase::InitDevice()
 	vp.TopLeftY = 0; //左上角Y坐标
 	m_pImmediateContext->RSSetViewports(1, &vp);
 
-	//编译Shader
-	//1.Vertex Shader
-	CreatePixelShader();
-	//2.Pixel Shader
-	CreateVertexShader();
-
 	return S_OK;
 }
 
 void DXBase::Render()
 {
 	CalculateFPS();
-    // Clear the back buffer 
-    float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
-    m_pImmediateContext->ClearRenderTargetView( m_pRenderTargetView, ClearColor );
+	// Update our time
+	static float t = 0.0f;
+	if (m_driverType == D3D_DRIVER_TYPE_REFERENCE)
+	{
+		t += (float)XM_PI * 0.0125f;
+	}
+	else
+	{
+		static DWORD dwTimeStart = 0;
+		DWORD dwTimeCur = GetTickCount();
+		if (dwTimeStart == 0)
+			dwTimeStart = dwTimeCur;
+		t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	}
 
-    // Render a triangle
-	m_pImmediateContext->VSSetShader( m_pVertexShader, NULL, 0 );
-	m_pImmediateContext->PSSetShader( m_pPixelShader, NULL, 0 );
-    m_pImmediateContext->Draw( 3, 0 );
+	////
+	//// Animate the cube
+	////
+	//m_World = XMMatrixRotationY(t);
 
-    // Present the information rendered to the back buffer to the front buffer (the screen)
-    m_pSwapChain->Present( 0, 0 );
+	////
+	//// Clear the back buffer
+	////
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+	m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
+
+	////
+	//// Update variables
+	////
+	//ConstantBuffer cb;
+	//cb.mWorld = XMMatrixTranspose(m_World);
+	//cb.mView = XMMatrixTranspose(m_View);
+	//cb.mProjection = XMMatrixTranspose(m_Projection);
+	//m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
+
+	//
+	// Renders a triangle
+	//
+	m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+	//m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
+	m_pImmediateContext->Draw(3, 0);        // 36 vertices needed for 12 triangles in a triangle list
+
+	//
+	// Present our back buffer to our front buffer
+	//
+	m_pSwapChain->Present(0, 0);
 }
 
 bool DXBase::Init()
 {
 	Trace("Init");
 	if (FAILED(InitDevice()))
+		return false;
+
+	if (FAILED(BuildShader()))
+		return false;
+
+	if (FAILED(BuildBuffers()))
 		return false;
 
 	m_timer.Reset();
@@ -130,11 +167,10 @@ void DXBase::Exit()
 {
 	Trace("Exit");
 	if (m_pImmediateContext) m_pImmediateContext->ClearState();
-
-	//if (m_pVertexBuffer) m_pVertexBuffer->Release();
-	//if (m_pVertexLayout) m_pVertexLayout->Release();
-	//if (m_pVertexShader) m_pVertexShader->Release();
-	//if (m_pPixelShader) m_pPixelShader->Release();
+	if (m_pVertexBuffer) m_pVertexBuffer->Release();
+	if (m_pVertexLayout) m_pVertexLayout->Release();
+	if (m_pVertexShader) m_pVertexShader->Release();
+	if (m_pPixelShader) m_pPixelShader->Release();
 	if (m_pRenderTargetView) m_pRenderTargetView->Release();
 	if (m_pSwapChain) m_pSwapChain->Release();
 	if (m_pImmediateContext) m_pImmediateContext->Release();
@@ -213,11 +249,12 @@ HRESULT DXBase::CreateVertexShader()
 		pVSBlob->Release();
 		return hr;
 	}
-
-	// Define the input layout
+	//-------------------------------------------------------------------------------------------------------
+	// Define the input layout    //InputLayout元素描述
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
@@ -225,7 +262,7 @@ HRESULT DXBase::CreateVertexShader()
 	hr = m_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
 		pVSBlob->GetBufferSize(), &m_pVertexLayout);
 	pVSBlob->Release();
-	
+
 
 	// Set the input layout
 	m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
@@ -250,26 +287,55 @@ HRESULT DXBase::CreatePixelShader()
 	// Create the pixel shader
 	hr = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShader);
 	pPSBlob->Release();
+
+	return hr;
+}
+
+HRESULT DXBase::BuildShader()
+{
+	HRESULT hr;
+	//编译Shader
+	//1.Vertex Shader
+	hr = CreatePixelShader();
 	if (FAILED(hr))
 		return hr;
+	//2.Pixel Shader
+	hr = CreateVertexShader();
+	if (FAILED(hr))
+		return hr;
+	return S_OK;
+}
 
-	// Create vertex buffer
-	SimpleVertex vertices[] =
-	{
-		XMFLOAT3(0.0f, 0.5f, 0.5f),
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+HRESULT DXBase::BuildInputLayout()
+{
+	return S_OK;
+}
+
+HRESULT DXBase::BuildBuffers()
+{
+	HRESULT hr;
+	Vertex vertices[] = {
+		{ XMFLOAT3(-1.0f, 1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 0.0f) },
 	};
+
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 3;
+	bd.ByteWidth = sizeof(Vertex) * 4;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = vertices;
 	hr = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
+	if (FAILED(hr))
+		return hr;
 
-	return hr;
+	// Set vertex buffer
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 }

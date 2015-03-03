@@ -23,6 +23,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
+#include <set>
+#include <map>
 
 //DirectX 头文件
 #include <d3d11.h>
@@ -49,6 +52,9 @@
 using std::cout;
 using std::cin;
 using std::endl;
+using std::vector;
+using std::set;
+using std::map;
 
 //定义SafeRelease
 #ifndef SAFE_RELEASE
@@ -69,9 +75,3 @@ using std::endl;
          }
 #endif
 #define SafeRelease SAFE_RELEASE
-
-
-struct SimpleVertex
-{
-	XMFLOAT3 Pos;
-};

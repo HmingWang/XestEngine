@@ -1,6 +1,8 @@
 #pragma once
 #include "WindowBase.h"
 #include "Timer.h"
+
+
 class DXBase :
 	public WindowBase
 {
@@ -15,6 +17,12 @@ private:
 	ID3D11PixelShader*      m_pPixelShader        = nullptr;                   //像素着色器
 	ID3D11InputLayout*      m_pVertexLayout       = nullptr;                   //顶点布局
 	ID3D11Buffer*           m_pVertexBuffer       = nullptr;                   //顶点缓存
+	ID3D11Buffer*           m_pIndexBuffer        = nullptr;                   //索引缓存
+	ID3D11Buffer*           m_pConstantBuffer     = nullptr;                   //常量缓存
+
+	XMMATRIX                m_World;              //世界变换矩阵
+	XMMATRIX                m_View;               //视角变换矩阵
+	XMMATRIX                m_Projection;         //透视矩阵
 
 	Timer m_timer;
 	HRESULT InitDevice();                  //初始化D3D
@@ -22,6 +30,12 @@ private:
 		CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT CreateVertexShader();
 	HRESULT CreatePixelShader();
+	HRESULT BuildShader();
+	HRESULT BuildInputLayout();
+	HRESULT BuildBuffers();
+
+
+
 public:
 	DXBase();
 	virtual ~DXBase();
@@ -38,3 +52,20 @@ public:
 	//virtual void OnDeviceRestored();
 };
 
+
+//--------------------------------------------------------------------------------------
+// Structures
+//--------------------------------------------------------------------------------------
+//struct Vertex //顶点结构
+//{
+//	XMFLOAT3 Pos;
+//	XMFLOAT4 Color;
+//};
+
+
+struct ConstantBuffer   //Shader常量
+{
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+};
