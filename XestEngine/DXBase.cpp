@@ -79,8 +79,36 @@ HRESULT DXBase::InitDevice()
 	if (FAILED(hr))
 		return hr;
 
+	// Create depth stencil texture //创建深度缓冲纹理
+	D3D11_TEXTURE2D_DESC descDepth;
+	ZeroMemory(&descDepth, sizeof(descDepth));
+	descDepth.Width = width;
+	descDepth.Height = height;
+	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+	hr = m_pd3dDevice->CreateTexture2D(&descDepth, NULL, &m_pDepthStencil);
+	if (FAILED(hr))
+		return hr;
+
+	// Create the depth stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory(&descDSV, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+	hr = m_pd3dDevice->CreateDepthStencilView(m_pDepthStencil, &descDSV, &m_pDepthStencilView);
+	if (FAILED(hr))
+		return hr;
+
 	//绑定到渲染管线
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 
 	// Setup the viewport
 	D3D11_VIEWPORT vp;
@@ -91,6 +119,18 @@ HRESULT DXBase::InitDevice()
 	vp.TopLeftX = 0; //左上角X坐标
 	vp.TopLeftY = 0; //左上角Y坐标
 	m_pImmediateContext->RSSetViewports(1, &vp);
+
+	// Initialize the world matrix
+	m_World = XMMatrixIdentity();
+
+	// Initialize the view matrix
+	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	m_View = XMMatrixLookAtLH(Eye, At, Up);
+
+	// Initialize the projection matrix
+	m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01f, 100.0f);
 
 	return S_OK;
 }
@@ -113,33 +153,58 @@ void DXBase::Render()
 		t = (dwTimeCur - dwTimeStart) / 1000.0f;
 	}
 
-	////
-	//// Animate the cube
-	////
-	//m_World = XMMatrixRotationY(t);
+	// 1st Cube: Rotate around the origin
+	XMMATRIX m_World1 = XMMatrixRotationY(t);
 
-	////
-	//// Clear the back buffer
-	////
-	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+	// 2nd Cube:  Rotate around origin
+	XMMATRIX mSpin = XMMatrixRotationZ(-t);
+	XMMATRIX mOrbit = XMMatrixRotationY(-t * 2.0f);
+	XMMATRIX mTranslate = XMMatrixTranslation(-4.0f, 0.0f, 0.0f);
+	XMMATRIX mScale = XMMatrixScaling(0.3f, 0.3f, 0.3f);
+
+	XMMATRIX m_World2 = mScale * mSpin * mTranslate * mOrbit;
+
+	//
+	// Clear the back buffer
+	//
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; //red, green, blue, alpha
 	m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
 
-	////
-	//// Update variables
-	////
-	//ConstantBuffer cb;
-	//cb.mWorld = XMMatrixTranspose(m_World);
-	//cb.mView = XMMatrixTranspose(m_View);
-	//cb.mProjection = XMMatrixTranspose(m_Projection);
-	//m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
+	//
+	// Clear the depth buffer to 1.0 (max depth)
+	//
+	m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//
-	// Renders a triangle
+	// Update variables for the first cube
+	//
+	ConstantBuffer cb1;
+	cb1.mWorld = XMMatrixTranspose(m_World1);
+	cb1.mView = XMMatrixTranspose(m_View);
+	cb1.mProjection = XMMatrixTranspose(m_Projection);
+	m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb1, 0, 0);
+
+	//
+	// Render the first cube
 	//
 	m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
-	//m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-	m_pImmediateContext->Draw(3, 0);        // 36 vertices needed for 12 triangles in a triangle list
+	m_pImmediateContext->DrawIndexed(36, 0, 0);
+
+	//
+	// Update variables for the second cube
+	//
+	ConstantBuffer cb2;
+	cb2.mWorld = XMMatrixTranspose(m_World2);
+	cb2.mView = XMMatrixTranspose(m_View);
+	cb2.mProjection = XMMatrixTranspose(m_Projection);
+	m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb2, 0, 0);
+
+	//
+	// Render the second cube
+	//
+	m_pImmediateContext->DrawIndexed(36, 0, 0);
 
 	//
 	// Present our back buffer to our front buffer
@@ -314,17 +379,28 @@ HRESULT DXBase::BuildInputLayout()
 HRESULT DXBase::BuildBuffers()
 {
 	HRESULT hr;
-	Vertex vertices[] = {
-		{ XMFLOAT3(-1.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 0.0f) },
-	};
 
+	RECT rc;
+	GetClientRect(GetWindow(), &rc);
+	UINT width = rc.right - rc.left;
+	UINT height = rc.bottom - rc.top;
+	//-----------------------------------------------------------------------------------
+	//创建顶点缓冲
+	SimpleVertex vertices[] =
+	{
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+	};
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(Vertex) * 4;
+	bd.ByteWidth = sizeof(SimpleVertex) * 8;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -334,8 +410,57 @@ HRESULT DXBase::BuildBuffers()
 	if (FAILED(hr))
 		return hr;
 
-	// Set vertex buffer
-	UINT stride = sizeof(Vertex);
+	//设置顶点缓冲
+	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
 	m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+
+	//-----------------------------------------------------------------------------------
+	//创建索引缓冲
+	WORD indices[] =
+	{
+		3, 1, 0,
+		2, 1, 3,
+
+		0, 5, 4,
+		1, 5, 0,
+
+		3, 4, 7,
+		0, 4, 3,
+
+		1, 6, 5,
+		2, 6, 1,
+
+		2, 7, 6,
+		3, 7, 2,
+
+		6, 4, 5,
+		7, 4, 6,
+	};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	InitData.pSysMem = indices;
+	hr = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	//设定索引缓冲
+	m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//设定图元类型
+	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//-----------------------------------------------------------------------------------
+	//创建常量缓冲
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	hr = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	return S_OK;
 }

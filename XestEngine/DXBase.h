@@ -13,6 +13,8 @@ private:
 	ID3D11DeviceContext*    m_pImmediateContext   = nullptr;                   //设备上下文
 	IDXGISwapChain*         m_pSwapChain          = nullptr;                   //交换链
 	ID3D11RenderTargetView* m_pRenderTargetView   = nullptr;                   //渲染对象视图
+	ID3D11Texture2D*        m_pDepthStencil       = nullptr;                   //深度缓冲纹理
+	ID3D11DepthStencilView* m_pDepthStencilView   = nullptr;                   //深度缓冲视图
 	ID3D11VertexShader*     m_pVertexShader       = nullptr;                   //顶点着色器
 	ID3D11PixelShader*      m_pPixelShader        = nullptr;                   //像素着色器
 	ID3D11InputLayout*      m_pVertexLayout       = nullptr;                   //顶点布局
@@ -56,11 +58,11 @@ public:
 //--------------------------------------------------------------------------------------
 // Structures
 //--------------------------------------------------------------------------------------
-//struct Vertex //顶点结构
-//{
-//	XMFLOAT3 Pos;
-//	XMFLOAT4 Color;
-//};
+struct SimpleVertex //顶点结构
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
 
 
 struct ConstantBuffer   //Shader常量
