@@ -17,6 +17,7 @@ private:
 	ID3D11DepthStencilView* m_pDepthStencilView   = nullptr;                   //深度缓冲视图
 	ID3D11VertexShader*     m_pVertexShader       = nullptr;                   //顶点着色器
 	ID3D11PixelShader*      m_pPixelShader        = nullptr;                   //像素着色器
+	ID3D11ComputeShader*    m_pComputeShader      = nullptr;                   //计算Shader
 	ID3D11InputLayout*      m_pVertexLayout       = nullptr;                   //顶点布局
 	ID3D11Buffer*           m_pVertexBuffer       = nullptr;                   //顶点缓存
 	ID3D11Buffer*           m_pIndexBuffer        = nullptr;                   //索引缓存
@@ -30,6 +31,8 @@ private:
 	HRESULT InitDevice();                  //初始化D3D
 	HRESULT CompileShaderFromFile(         //编译Shader
 		CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+	HRESULT CompileComputeShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, //编译Shader windows8.1
+		_In_ ID3D11Device* device, _Outptr_ ID3DBlob** blob);
 	HRESULT CreateVertexShader();
 	HRESULT CreatePixelShader();
 	HRESULT BuildShader();

@@ -247,6 +247,7 @@ void DXBase::Exit()
 //--------------------------------------------------------------------------------------
 HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
 {
+#if _WIN32_WINNT <=_WIN32_WINNT_WIN7
 	HRESULT hr = S_OK;
 
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -259,7 +260,7 @@ HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPC
 #endif
 
 	ID3DBlob* pErrorBlob;
-	hr = D3DX11CompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel,
+	hr = D3DCompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel,
 		dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
 	if (FAILED(hr))
 	{
@@ -269,8 +270,9 @@ HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPC
 		return hr;
 	}
 	if (pErrorBlob) pErrorBlob->Release();
-
+#endif
 	return S_OK;
+
 }
 
 void DXBase::CalculateFPS()
@@ -299,16 +301,17 @@ HRESULT DXBase::CreateVertexShader()
 	Trace("CreateVertexShader");
 	HRESULT hr = S_OK;
 	ID3DBlob* pVSBlob = NULL;
-	hr = CompileShaderFromFile("VertexShader.hlsl", "main", "vs_4_0", &pVSBlob);
+	hr = CompileComputeShader(L"VertexShader.hlsl", "main", m_pd3dDevice, &pVSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
-			"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+			"±àÒëVertexShader³ö´í£¡", "Error", MB_OK);
 		return hr;
 	}
 
 	// Create the vertex shader
 	hr = m_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &m_pVertexShader);
+	//hr = m_pd3dDevice->CreateComputeShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &m_pComputeShader);
 	if (FAILED(hr))
 	{
 		pVSBlob->Release();
@@ -341,16 +344,18 @@ HRESULT DXBase::CreatePixelShader()
 	HRESULT hr;
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = NULL;
-	hr = CompileShaderFromFile("PixelShader.hlsl", "main", "ps_4_0", &pPSBlob);
+	//hr = CompileShaderFromFile("PixelShader.hlsl", "main", "ps_4_0", &pPSBlob);
+	hr = CompileComputeShader(L"PixelShader.hlsl", "main", m_pd3dDevice, &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
-			"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+			"±àÒëPixelShader³ö´í£¡", "Error", MB_OK);
 		return hr;
 	}
 
 	// Create the pixel shader
 	hr = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShader);
+	hr = m_pd3dDevice->CreateComputeShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pComputeShader);
 	pPSBlob->Release();
 
 	return hr;
@@ -361,11 +366,11 @@ HRESULT DXBase::BuildShader()
 	HRESULT hr;
 	//±àÒëShader
 	//1.Vertex Shader
-	hr = CreatePixelShader();
+	hr = CreateVertexShader();
 	if (FAILED(hr))
 		return hr;
 	//2.Pixel Shader
-	hr = CreateVertexShader();
+	hr = CreatePixelShader();
 	if (FAILED(hr))
 		return hr;
 	return S_OK;
@@ -463,4 +468,53 @@ HRESULT DXBase::BuildBuffers()
 		return hr;
 
 	return S_OK;
+}
+
+HRESULT DXBase::CompileComputeShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, _In_ ID3D11Device* device, _Outptr_ ID3DBlob** blob)
+{
+	if (!srcFile || !entryPoint || !device || !blob)
+		return E_INVALIDARG;
+
+	*blob = nullptr;
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
+	// We generally prefer to use the higher CS shader profile when possible as CS 5.0 is better performance on 11-class hardware
+	LPCSTR profile = (device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0) ? "cs_5_0" : "cs_4_0";
+#if defined( DEBUG ) || defined( _DEBUG )
+	profile = "vs_4_0";
+#endif
+
+	const D3D_SHADER_MACRO defines[] =
+	{
+		"EXAMPLE_DEFINE", "1",
+		NULL, NULL
+	};
+
+	ID3DBlob* shaderBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+	HRESULT hr = D3DCompileFromFile(srcFile, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		entryPoint, profile,
+		flags, 0, &shaderBlob, &errorBlob);
+	if (FAILED(hr))
+	{
+		if (errorBlob)
+		{
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			Trace((char*)errorBlob->GetBufferPointer());  //´òÓ¡Shader±àÒë´íÎóÐÅÏ¢
+			errorBlob->Release();
+		}
+
+		if (shaderBlob)
+			shaderBlob->Release();
+
+		return hr;
+	}
+
+	*blob = shaderBlob;
+
+	return hr;
 }
