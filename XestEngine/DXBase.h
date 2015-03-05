@@ -29,8 +29,7 @@ private:
 
 	Timer m_timer;
 	HRESULT InitDevice();                  //≥ı ºªØD3D
-	HRESULT CompileShaderFromFile(         //±‡“ÎShader
-		CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+	HRESULT CompileShaderFromFile(         LPCWSTR szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT CompileComputeShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, //±‡“ÎShader windows8.1
 		_In_ ID3D11Device* device, _Outptr_ ID3DBlob** blob);
 	HRESULT CreateVertexShader();

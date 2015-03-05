@@ -34,20 +34,17 @@
 #include <d3d11_2.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
-
+#include <DirectXColors.h>
 
 //DirectX 库文件
 #pragma comment( lib, "d3d11.lib" )
-
 #pragma comment( lib, "D3DCompiler.lib" )
-
 #pragma comment( lib, "dxgi.lib" )
 #pragma comment( lib, "dxguid.lib" )
-
 #pragma comment( lib, "winmm.lib" )
 #pragma comment( lib, "comctl32.lib" )
 
-#if _WIN32_WINNT <=_WIN32_WINNT_WIN7  //win7 使用库文件和头文件
+#if _WIN32_WINNT <_WIN32_WINNT_WIN8  //win7 使用库文件和头文件
 #include <d3dx11.h>
 #include <xnamath.h>
 #pragma comment( lib, "d3dx11d.lib" )

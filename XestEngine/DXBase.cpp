@@ -12,7 +12,9 @@ DXBase::~DXBase()
 {
 }
 
-
+//--------------------------------------------------------------------------------------
+//D3D设备初始化
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::InitDevice()
 {
 	HRESULT hr = S_OK;
@@ -53,7 +55,7 @@ HRESULT DXBase::InitDevice()
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.OutputWindow = this->GetWindow();  //输出窗口句柄
-	sd.SampleDesc.Count = 4;   //多重采样抗锯齿等级
+	sd.SampleDesc.Count = 1;   //多重采样抗锯齿等级
 	sd.SampleDesc.Quality = 0; //多重采样抗锯齿品质
 	sd.Windowed = TRUE;        //窗口化
 
@@ -135,6 +137,9 @@ HRESULT DXBase::InitDevice()
 	return S_OK;
 }
 
+//--------------------------------------------------------------------------------------
+//渲染主函数
+//--------------------------------------------------------------------------------------
 void DXBase::Render()
 {
 	CalculateFPS();
@@ -212,6 +217,9 @@ void DXBase::Render()
 	m_pSwapChain->Present(0, 0);
 }
 
+//--------------------------------------------------------------------------------------
+//初始化主函数
+//--------------------------------------------------------------------------------------
 bool DXBase::Init()
 {
 	Trace("Init");
@@ -228,6 +236,9 @@ bool DXBase::Init()
 	return true;
 }
 
+//--------------------------------------------------------------------------------------
+//系统退出主函数
+//--------------------------------------------------------------------------------------
 void DXBase::Exit()
 {
 	Trace("Exit");
@@ -243,11 +254,11 @@ void DXBase::Exit()
 }
 
 //--------------------------------------------------------------------------------------
-// Helper for compiling shaders with D3DX11
+// 编译Shader 使用D3DCompileFromFile
 //--------------------------------------------------------------------------------------
-HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
+HRESULT DXBase::CompileShaderFromFile(LPCWSTR szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
 {
-#if _WIN32_WINNT <=_WIN32_WINNT_WIN7
+//#if _WIN32_WINNT <=_WIN32_WINNT_WIN8
 	HRESULT hr = S_OK;
 
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -260,8 +271,9 @@ HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPC
 #endif
 
 	ID3DBlob* pErrorBlob;
-	hr = D3DCompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel,
-		dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
+	hr = D3DCompileFromFile(szFileName, NULL, NULL,
+		szEntryPoint, szShaderModel,
+		dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
 	if (FAILED(hr))
 	{
 		if (pErrorBlob != NULL)
@@ -270,11 +282,14 @@ HRESULT DXBase::CompileShaderFromFile(CHAR* szFileName, LPCSTR szEntryPoint, LPC
 		return hr;
 	}
 	if (pErrorBlob) pErrorBlob->Release();
-#endif
+//#endif
 	return S_OK;
 
 }
 
+//--------------------------------------------------------------------------------------
+// 计算每秒帧数
+//--------------------------------------------------------------------------------------
 void DXBase::CalculateFPS()
 {
 	//Trace("CalculateFPS");
@@ -294,14 +309,14 @@ void DXBase::CalculateFPS()
 }
 
 //--------------------------------------------------------------------------------------
-// Create Vertex Shader
+// 生成顶点着色器
 //--------------------------------------------------------------------------------------
 HRESULT DXBase::CreateVertexShader()
 {
 	Trace("CreateVertexShader");
 	HRESULT hr = S_OK;
 	ID3DBlob* pVSBlob = NULL;
-	hr = CompileComputeShader(L"VertexShader.hlsl", "main", m_pd3dDevice, &pVSBlob);
+	hr = CompileShaderFromFile(L"VertexShader.hlsl", "main", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
@@ -311,7 +326,6 @@ HRESULT DXBase::CreateVertexShader()
 
 	// Create the vertex shader
 	hr = m_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &m_pVertexShader);
-	//hr = m_pd3dDevice->CreateComputeShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &m_pComputeShader);
 	if (FAILED(hr))
 	{
 		pVSBlob->Release();
@@ -338,14 +352,16 @@ HRESULT DXBase::CreateVertexShader()
 	return hr;
 }
 
+//--------------------------------------------------------------------------------------
+// 生成像素着色器
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::CreatePixelShader()
 {
 	Trace("CreatePixelShader");
 	HRESULT hr;
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = NULL;
-	//hr = CompileShaderFromFile("PixelShader.hlsl", "main", "ps_4_0", &pPSBlob);
-	hr = CompileComputeShader(L"PixelShader.hlsl", "main", m_pd3dDevice, &pPSBlob);
+	hr = CompileShaderFromFile(L"PixelShader.hlsl", "main", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
@@ -355,12 +371,14 @@ HRESULT DXBase::CreatePixelShader()
 
 	// Create the pixel shader
 	hr = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShader);
-	hr = m_pd3dDevice->CreateComputeShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pComputeShader);
 	pPSBlob->Release();
 
 	return hr;
 }
 
+//--------------------------------------------------------------------------------------
+// 编译Shader
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::BuildShader()
 {
 	HRESULT hr;
@@ -376,11 +394,17 @@ HRESULT DXBase::BuildShader()
 	return S_OK;
 }
 
+//--------------------------------------------------------------------------------------
+// 生成InputLayout
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::BuildInputLayout()
 {
 	return S_OK;
 }
 
+//--------------------------------------------------------------------------------------
+// 生成顶点缓冲、索引缓冲
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::BuildBuffers()
 {
 	HRESULT hr;
@@ -470,6 +494,9 @@ HRESULT DXBase::BuildBuffers()
 	return S_OK;
 }
 
+//--------------------------------------------------------------------------------------
+// 编译Compute Shader
+//--------------------------------------------------------------------------------------
 HRESULT DXBase::CompileComputeShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, _In_ ID3D11Device* device, _Outptr_ ID3DBlob** blob)
 {
 	if (!srcFile || !entryPoint || !device || !blob)
@@ -484,9 +511,6 @@ HRESULT DXBase::CompileComputeShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoin
 
 	// We generally prefer to use the higher CS shader profile when possible as CS 5.0 is better performance on 11-class hardware
 	LPCSTR profile = (device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0) ? "cs_5_0" : "cs_4_0";
-#if defined( DEBUG ) || defined( _DEBUG )
-	profile = "vs_4_0";
-#endif
 
 	const D3D_SHADER_MACRO defines[] =
 	{
