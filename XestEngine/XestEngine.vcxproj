@@ -70,8 +70,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DXBase.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Scence.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="XestApp.h" />
@@ -80,8 +82,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXBase.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Scence.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="XestApp.cpp" />
     <ClCompile Include="WindowBase.cpp" />

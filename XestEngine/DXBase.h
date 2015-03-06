@@ -1,6 +1,7 @@
 #pragma once
 #include "WindowBase.h"
 #include "Timer.h"
+#include "Geometry.h"
 
 
 class DXBase :
@@ -26,6 +27,10 @@ private:
 	XMMATRIX                m_World;              //世界变换矩阵
 	XMMATRIX                m_View;               //视角变换矩阵
 	XMMATRIX                m_Projection;         //透视矩阵
+
+	MeshData m_grid, m_box, m_sphere, m_cylinder;
+	UINT m_gridVStart, m_boxVStart, m_sphereVStart, m_cylinderVStart;
+	UINT m_gridIStart, m_boxIStart, m_sphereIStart, m_cylinderIStart;
 
 	Timer m_timer;
 	HRESULT InitDevice();                  //初始化D3D
@@ -62,8 +67,8 @@ public:
 //--------------------------------------------------------------------------------------
 struct SimpleVertex //顶点结构
 {
-	XMFLOAT3 Pos;
-	XMFLOAT4 Color;
+	XMFLOAT3 pos;
+	XMFLOAT4 color;
 };
 
 
