@@ -44,7 +44,7 @@ int WindowBase::Run()
 {
 	// 执行应用程序初始化: 
 	if (!InitInstance()) return FALSE;
-	if (!g_theApp->Init()) return FALSE;  //子类初始化
+	if (!Init()) return FALSE;  //子类初始化
 	// 主消息循环: 
 	while (WM_QUIT != m_msg.message)
 	{
@@ -55,11 +55,12 @@ int WindowBase::Run()
 		}
 		else
 		{
-			g_theApp->Render();    //子类渲染
+			Update();
+			Render();    //子类渲染
 		}
 	}
 
-	g_theApp->Exit();             //子类退出
+	Exit();             //子类退出
 	return (int)m_msg.wParam;
 }
 
@@ -216,6 +217,11 @@ void WindowBase::Render()
 {
 	//override
 
+}
+
+void WindowBase::Update()
+{
+	//override
 }
 
 

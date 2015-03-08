@@ -49,10 +49,10 @@ public:
 	DXBase();
 	virtual ~DXBase();
 
-
 	virtual bool Init()   override;       //程序初始化
 	virtual void Render() override;       //帧渲染 子类重写   
 	virtual void Exit()   override;       //程序退出
+	virtual void Update() override;       //每帧更新
 	void CleanupDevice();
 	void CalculateFPS();  //计算帧数
 	

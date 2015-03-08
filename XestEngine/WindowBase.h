@@ -49,6 +49,7 @@ public:
 	virtual int  Run() final;  //程序主循环 禁止重写
 	virtual void Render();        //帧渲染 子类重写   
 	virtual void Exit();       //程序退出
+	virtual void Update();     //每帧更新
 
                 
 };

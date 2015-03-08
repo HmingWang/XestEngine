@@ -110,7 +110,7 @@ HRESULT DXBase::InitDevice()
 		return hr;
 
 	//绑定到渲染管线
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView,nullptr);
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 
 	// Setup the viewport
 	D3D11_VIEWPORT vp;
@@ -142,7 +142,7 @@ HRESULT DXBase::InitDevice()
 //--------------------------------------------------------------------------------------
 void DXBase::Render()
 {
-	CalculateFPS();
+	
 	//// Update our time
 	//static float t = 0.0f;
 	//if (m_driverType == D3D_DRIVER_TYPE_REFERENCE)
@@ -245,7 +245,7 @@ void DXBase::Render()
 	//XMMATRIX view = m_View;
 	//XMMATRIX proj = m_Projection;
 
-	m_World = XMMatrixRotationY(XM_PI*0.0125);
+	m_World = XMMatrixRotationY(XM_PI*0.0125f);
 	ConstantBuffer cb1;
 	cb1.mWorld = XMMatrixTranspose(m_World);
 	cb1.mView = XMMatrixTranspose(m_View);
@@ -709,4 +709,9 @@ HRESULT DXBase::BuildBuffers()
 	return true;
 
 	return S_OK;
+}
+
+void DXBase::Update()
+{
+	CalculateFPS();
 }

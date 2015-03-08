@@ -1,19 +1,20 @@
 #pragma once
 
 #include "stdafx.h"
+#include "Vertex.h"
 
 //定义一个通用的顶点结构：位置、法线、切线、纹理坐标
-struct Vertex
-{
-	Vertex(){}
-	Vertex(const XMFLOAT3 _pos, XMFLOAT3 _normal = { 0,0,0 }, XMFLOAT3 _tangent = { 0,0,0}, XMFLOAT2 _tex = {0,0}) :
-		pos(_pos), normal(_normal), tangent(_tangent), tex(_tex){}
-
-	XMFLOAT3	pos;
-	XMFLOAT3	normal;
-	XMFLOAT3	tangent;
-	XMFLOAT2	tex;
-};
+//struct Vertex
+//{
+//	Vertex(){}
+//	Vertex(const XMFLOAT3 _pos, XMFLOAT3 _normal = { 0,0,0 }, XMFLOAT3 _tangent = { 0,0,0}, XMFLOAT2 _tex = {0,0}) :
+//		pos(_pos), normal(_normal), tangent(_tangent), tex(_tex){}
+//
+//	XMFLOAT3	pos;
+//	XMFLOAT3	normal;
+//	XMFLOAT3	tangent;
+//	XMFLOAT2	tex;
+//};
 
 //基本网络结构：顶点集合+索引集合
 struct MeshData

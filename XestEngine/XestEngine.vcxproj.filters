@@ -48,6 +48,9 @@
     <ClInclude Include="Scence.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="XestApp.cpp">
@@ -75,6 +78,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Scence.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
