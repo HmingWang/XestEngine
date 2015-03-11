@@ -232,15 +232,15 @@ void DXBase::Render()
 	m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
 
 	//设置为“线框”绘制模式
-	D3D11_RASTERIZER_DESC rsDesc;
-	ZeroMemory(&rsDesc, sizeof(rsDesc));
-	rsDesc.CullMode = D3D11_CULL_BACK;
-	rsDesc.DepthClipEnable = true;
-	rsDesc.FillMode = D3D11_FILL_WIREFRAME;		//WireFrame
-	rsDesc.FrontCounterClockwise = false;
-	ID3D11RasterizerState *rsState(NULL);
-	m_pd3dDevice->CreateRasterizerState(&rsDesc, &rsState);
-	m_pImmediateContext->RSSetState(rsState);
+	//D3D11_RASTERIZER_DESC rsDesc;
+	//ZeroMemory(&rsDesc, sizeof(rsDesc));
+	//rsDesc.CullMode = D3D11_CULL_BACK;
+	//rsDesc.DepthClipEnable = true;
+	//rsDesc.FillMode = D3D11_FILL_WIREFRAME;		//WireFrame
+	//rsDesc.FrontCounterClockwise = false;
+	//ID3D11RasterizerState *rsState(NULL);
+	//m_pd3dDevice->CreateRasterizerState(&rsDesc, &rsState);
+	//m_pImmediateContext->RSSetState(rsState);
 
 	//XMMATRIX view = m_View;
 	//XMMATRIX proj = m_Projection;

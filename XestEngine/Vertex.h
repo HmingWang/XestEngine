@@ -16,7 +16,7 @@ private:
 	XMFLOAT3	m_Position; //位置坐标
 	XMFLOAT3	m_Normal;//法线
 	XMFLOAT3	m_Tangent;//切线
-	XMFLOAT2	m_Tex;//纹理坐标
+	XMFLOAT2	m_TexCoord;//纹理坐标
 	XMFLOAT4    m_Color;//颜色
 };
 

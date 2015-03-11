@@ -72,6 +72,8 @@
     <ClInclude Include="DXBase.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Geometry.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scence.h" />
     <ClInclude Include="stdafx.h" />
